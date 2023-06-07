@@ -2,6 +2,7 @@ package com.james0ssh.BombSolver;
 import jdk.jshell.spi.ExecutionControl;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 import java.util.function.Predicate;
@@ -9,6 +10,7 @@ import java.util.function.Predicate;
 public class Main {
     public static void main(String[] args) {
         Bomb bomb = new Bomb();
+        bomb.addModule(new SimpleWires());
     }
 }
 
@@ -37,7 +39,7 @@ final class Bomb {
             } while (Integer.parseInt(input) > 0);
             batteryCount = (byte) Short.parseShort(input);
         }
-        System.out.flush();
+        clearScreen();
         System.out.println("Does the Bomb have any Labels N|Y\n___:");
         do {
             input = scan.nextLine();
@@ -55,7 +57,7 @@ final class Bomb {
             Predicate<? super String> f = str -> str.equals("0");
             labels.removeIf(f);
         }
-        System.console().flush();
+        clearScreen();
         System.out.print("What is the Bomb's Serial Number\n___:");
         input = scan.nextLine();
         hasVowel = input.matches(".*[aeiouAEIOU].*");
@@ -71,6 +73,20 @@ final class Bomb {
 
     public void addModule(Module mod) {
         modules.add(mod);
+    }
+
+    private void clearScreen() {
+        try {
+            String os = System.getProperty("os.name").toLowerCase();
+            if (os.contains("win")) {
+                new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
+            } else {
+                System.out.print("\033[H\033[2J");
+                System.out.flush();
+            }
+        } catch (Exception e) {
+            // Handle exceptions
+        }
     }
 
 }
@@ -93,8 +109,10 @@ enum wireColour {
     YELLOW,
     BLUE
 }
+
+
 final class SimpleWire {
-    wireColour wc;
+    public wireColour wc;
 
     public SimpleWire() {
         System.out.println("What colour wire");
@@ -108,21 +126,20 @@ final class SimpleWire {
     }
 }
 
-final class ComplexWire {
+final class ComplexWire{
     wireColour wc0;
     wireColour wc1;
 }
 
-final class Wires extends Module {
-    byte wires = 0;
-    wireColour[] wireColours = new wireColour[6];
+final class SimpleWires extends Module {
+    SimpleWire[] wires = new SimpleWire[6];
 
     private String drawWireModule() {
         StringBuilder module = new StringBuilder("[------------------]\n");
         for(byte i = 0; i <= 5; i++) {
             module.append(String.format("| %d. ", i + 1));
-            if (wireColours[i] != null) {
-                module.append(wireColours[i].name());
+            if (wires[i].wc != null) {
+                module.append(wires[i].wc.name());
             } else {
                 module.append("no wire");
             }
@@ -132,8 +149,23 @@ final class Wires extends Module {
         return module.toString();
     }
 
+    //TODO: Implement
     @Override
     String solve() {
-        return "";
+        byte wireCount = 0;
+        for (SimpleWire sw : wires){
+            wireCount += (sw.wc != null) ? 1 : 0;
+        }
+        switch(wireCount) {
+            case 3:
+                break;
+            default:
+                break;
+        }
+        return null;
+    }
+    //TODO: Implement
+    public SimpleWires() {
+
     }
 }
