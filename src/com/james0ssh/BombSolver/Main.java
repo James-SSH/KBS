@@ -1,10 +1,5 @@
 package com.james0ssh.BombSolver;
-import jdk.jshell.spi.ExecutionControl;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 import java.util.function.Predicate;
 
 public class Main {
@@ -133,17 +128,18 @@ final class ComplexWire{
 
 final class SimpleWires extends Module {
     SimpleWire[] wires = new SimpleWire[6];
-
     private String drawWireModule() {
         StringBuilder module = new StringBuilder("[------------------]\n");
         for(byte i = 0; i <= 5; i++) {
-            module.append(String.format("| %d. ", i + 1));
-            if (wires[i].wc != null) {
-                module.append(wires[i].wc.name());
+            StringBuilder wire = new StringBuilder();
+            wire.append(String.format("| %d. ", i + 1));
+            if (wires[i] != null) {
+                wire.append(wires[i].wc.name());
             } else {
-                module.append("no wire");
+                wire.append("no wire");
             }
-            module.append("~".repeat(Math.max(0, 13 - module.length() + 3))).append("|\n");
+            wire.append("~".repeat(Math.max(0, 16 - wire.length() + 3))).append("|\n");
+            module.append(wire);
         }
         module.append("[------------------]");
         return module.toString();
@@ -164,8 +160,24 @@ final class SimpleWires extends Module {
         }
         return null;
     }
-    //TODO: Implement
     public SimpleWires() {
-
+        System.out.println(drawWireModule());
+        System.out.println("Which rows have wires attached 'Comma Separated'");
+        String input = new Scanner(System.in).nextLine();
+        String[] values = input.split(",");
+        for (byte i = 0; i < values.length; i++){values[i] = values[i].trim();}
+        Byte[] B_rows = Arrays.stream(values).map(Byte::parseByte).toArray(Byte[]::new);
+        byte[] rows = new byte[B_rows.length];
+        for(byte i = 0; i < B_rows.length; i++){rows[i] = B_rows[i];}
+        B_rows = null;
+        System.out.println("What are the colours of the wires? 'Comma Separated'");
+        input = new Scanner(System.in).nextLine();
+        String[] rowsColour = input.split(",");
+        for(byte i = 0; i < rowsColour.length; i++){rowsColour[i] = rowsColour[i].trim().toUpperCase();}
+        input = null;
+        for(byte i = 0; i < rows.length; i++) {
+            wires[rows[i]] = new SimpleWire(wireColour.valueOf(rowsColour[i]));
+        }
+        System.out.println(drawWireModule());
     }
 }
