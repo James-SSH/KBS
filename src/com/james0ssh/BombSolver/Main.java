@@ -5,7 +5,7 @@ import java.util.function.Predicate;
 public class Main {
     public static void main(String[] args) {
         Bomb bomb = new Bomb();
-        bomb.addModule(new Keypad());
+        bomb.addModule(new SimonSays(bomb));
         for (Module m : bomb.modules) {
             System.out.println(m.solve(bomb));
         }
@@ -206,8 +206,8 @@ final class SimpleWire {
 }
 
 final class ComplexWire{
-    wireColour wc0;
-    wireColour wc1;
+    boolean hasBlue;
+    boolean hasRed;
     boolean hasSymbol;
     boolean hasLED;
 }
@@ -327,7 +327,7 @@ final class Button extends Module {
 final class Keypad extends Module {
     Key[] keys = new Key[4];
     Key keyref = new Key();
-    Key.Keys[][] solveColumns = new Key.Keys[][] {{Key.Keys.BALLOON, Key.Keys.AT, Key.Keys.UPSIDEDOWNY, Key.Keys.SQUIGGLYN, Key.Keys.SQUIDKNIFE, Key.Keys.LEFTC},
+    final Key.Keys[][] solveColumns = new Key.Keys[][] {{Key.Keys.BALLOON, Key.Keys.AT, Key.Keys.UPSIDEDOWNY, Key.Keys.SQUIGGLYN, Key.Keys.SQUIDKNIFE, Key.Keys.LEFTC},
                                                     {Key.Keys.EURO, Key.Keys.BALLOON, Key.Keys.LEFTC, Key.Keys.CURSIVE, Key.Keys.HOLLOWSTAR, Key.Keys.HOOKN, Key.Keys.QUESTIONMARK},
                                                       {Key.Keys.COPYRIGHT, Key.Keys.PUMPKIN, Key.Keys.CURSIVE, Key.Keys.DOUBLEK, Key.Keys.MELTEDTHREE, Key.Keys.UPSIDEDOWNY, Key.Keys.HOLLOWSTAR},
                                                         {Key.Keys.SIX, Key.Keys.PARAGRAPH, Key.Keys.BT, Key.Keys.SQUIDKNIFE, Key.Keys.DOUBLEK, Key.Keys.QUESTIONMARK, Key.Keys.SMILEYFACE},
@@ -335,7 +335,8 @@ final class Keypad extends Module {
                                                             {Key.Keys.SIX, Key.Keys.EURO, Key.Keys.TRACKS, Key.Keys.AE, Key.Keys.PITCHFORK, Key.Keys.NWITHHAT, Key.Keys.OMEGA}};
 
     Keypad() {
-        for(HashMap.Entry<Key.Keys, Character> ent : keyref.symbolMap.entrySet()) System.out.println(ent.getKey().ordinal() + ". " + ent.getKey().name() + " [" + ent.getValue() + "]");
+        String keyTableFormat = "| %-4s | %-18s | [%-1s]\n";
+        for(HashMap.Entry<Key.Keys, Character> ent : keyref.symbolMap.entrySet()) System.out.format(keyTableFormat, ent.getKey().ordinal(), ent.getKey().name(), ent.getValue());
         System.out.print("Enter Symbols, (The number assoc, Comma sep)\n___:");
         String input = new Scanner(System.in).nextLine();
         String[] in = input.split(",");
@@ -345,6 +346,86 @@ final class Keypad extends Module {
             keys[i].symbolMap = null;
             keys[i].symbols = null;
         }
+    }
+    @Override
+    String solve(Bomb bomb) {
+        Key.Keys[] keyValues = Arrays.stream(keys).map(k -> k.keyvalue).toArray(Key.Keys[]::new);
+        for (Key.Keys[] solveColumn : solveColumns) {
+            if (new HashSet<>(Arrays.asList(solveColumn)).containsAll(Arrays.asList(keyValues))) {
+                StringBuilder keyOrder = new StringBuilder();
+                for (Key.Keys solveKey : solveColumn){
+                    if (Arrays.stream(keyValues).anyMatch(k -> k == solveKey)) {keyOrder.append(keyref.symbolMap.get(solveKey)); keyOrder.append(" -> ");}
+                }
+                keyOrder.delete(keyOrder.lastIndexOf(" -> "), keyOrder.length());
+                return keyOrder.toString();
+            }
+        }
+        return null;
+    }
+}
+
+final class SimonSays extends Module {
+
+    enum simonColours {
+        BLUE,
+        RED,
+        YELLOW,
+        GREEN
+    }
+
+    simonColours colourRef;
+
+    Object[][][] solvePattern = new Object[][][]{
+            {{
+                    Map.of(
+                            simonColours.RED, simonColours.BLUE,
+                            simonColours.BLUE, simonColours.YELLOW,
+                            simonColours.GREEN, simonColours.GREEN,
+                            simonColours.YELLOW, simonColours.RED
+                    )
+            }, {
+                    Map.of(
+                            simonColours.RED, simonColours.RED,
+                            simonColours.BLUE, simonColours.BLUE,
+                            simonColours.GREEN, simonColours.YELLOW,
+                            simonColours.YELLOW, simonColours.GREEN
+                    )
+            }, {
+                    Map.of(
+                            simonColours.RED, simonColours.YELLOW,
+                            simonColours.BLUE, simonColours.GREEN,
+                            simonColours.GREEN, simonColours.BLUE,
+                            simonColours.YELLOW, simonColours.RED
+                    )
+            }},
+
+            {{
+                    Map.of(
+                            simonColours.RED, simonColours.BLUE,
+                            simonColours.BLUE, simonColours.RED,
+                            simonColours.GREEN, simonColours.YELLOW,
+                            simonColours.YELLOW, simonColours.GREEN
+                    )
+            }, {
+                    Map.of(
+                            simonColours.RED, simonColours.YELLOW,
+                            simonColours.BLUE, simonColours.RED,
+                            simonColours.GREEN, simonColours.YELLOW,
+                            simonColours.YELLOW, simonColours.GREEN
+                    )
+            }, {
+                    Map.of(
+                            simonColours.RED, simonColours.BLUE,
+                            simonColours.BLUE, simonColours.RED,
+                            simonColours.GREEN, simonColours.YELLOW,
+                            simonColours.YELLOW, simonColours.BLUE
+                    )
+            }}
+    };
+
+    public SimonSays(Bomb bomb) {
+        System.out.print("How many strikes does the bomb have?\n___: ");
+        bomb.strikes = Byte.parseByte(new Scanner(System.in).nextLine());
     }
     //TODO: Implement
     @Override
