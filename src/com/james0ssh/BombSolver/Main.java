@@ -18,6 +18,7 @@ final class Bomb {
     boolean hasBatteries = false;
     boolean bombParity;
     boolean hasVowel;
+    boolean hasParallel = false;
     List<String> labels = new ArrayList<>();
     List<Module> modules = new ArrayList<>();
 
@@ -375,7 +376,7 @@ final class SimonSays extends Module {
 
     simonColours colourRef;
 
-    Object[][][] solvePattern = new Object[][][]{
+    Map[][][] solvePattern = new Map[][][]{
             {{
                     Map.of(
                             simonColours.RED, simonColours.BLUE,
@@ -430,6 +431,32 @@ final class SimonSays extends Module {
     //TODO: Implement
     @Override
     String solve(Bomb bomb) {
-        return null;
+        System.out.println("How many strikes? ");
+        {
+            int input = Integer.parseInt(new Scanner(System.in).nextLine());
+            bomb.strikes = (byte) clamp(input, 0, 2);
+        }
+        String input = "";
+        while (!input.equals("diffused")) {
+            System.out.println("Enter Sequence (commasep)\n\tenter strike: if you got a strike\n\tenter diffused if it's diffused");
+            input = new Scanner(System.in).nextLine();
+            String[] values = input.replaceAll(" ", "").split(",");
+            StringBuilder builder = new StringBuilder();
+            for(String s : values) {
+                if (s.equalsIgnoreCase("strike")) {bomb.strikes++; continue;}
+                if (s.equalsIgnoreCase("diffused")) break;
+                builder.append(solvePattern[Integer.parseInt(String.valueOf(bomb.hasVowel ? 1 : 0))][bomb.strikes][0].get(simonColours.valueOf(s))).append(" -> ");
+            }
+            if(!builder.isEmpty()) builder.replace(builder.lastIndexOf(" -> "), builder.length(), "");
+            else break;
+            System.out.println(builder);
+        }
+        return "diffused";
+    }
+
+    public static long clamp(long value, long min, long max) {
+        if (value > max) return max;
+        else if (value < min) return min;
+        return value;
     }
 }
